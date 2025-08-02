@@ -1,8 +1,7 @@
 import os
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
+import requests
+from bs4 import BeautifulSoup, Tag, NavigableString
 
 # Book metadata: (code, name, number of chapters)
 BOOKS = [
@@ -18,59 +17,52 @@ BOOKS = [
     ("HAB", "Habakkuk", 3), ("ZEP", "Zephaniah", 3), ("HAG", "Haggai", 2), ("ZEC", "Zechariah", 14), ("MAL", "Malachi", 4),
 
     # New Testament
-    # ("MAT", "Matthew", 28), ("MRK", "Mark", 16), ("LUK", "Luke", 24), ("JHN", "John", 21),
-    # ("ACT", "Acts", 28), ("ROM", "Romans", 16), ("1CO", "1 Corinthians", 16), ("2CO", "2 Corinthians", 13),
-    # ("GAL", "Galatians", 6), ("EPH", "Ephesians", 6), ("PHP", "Philippians", 4), ("COL", "Colossians", 4),
-    # ("1TH", "1 Thessalonians", 5), ("2TH", "2 Thessalonians", 3), ("1TI", "1 Timothy", 6), ("2TI", "2 Timothy", 4),
-    # ("TIT", "Titus", 3), ("PHM", "Philemon", 1), ("HEB", "Hebrews", 13), ("JAS", "James", 5),
-    # ("1PE", "1 Peter", 5), ("2PE", "2 Peter", 3), ("1JN", "1 John", 5), ("2JN", "2 John", 1),
-    # ("3JN", "3 John", 1), ("JUD", "Jude", 1), ("REV", "Revelation", 22)
+    ("MAT", "Matthew", 28), ("MRK", "Mark", 16), ("LUK", "Luke", 24), ("JHN", "John", 21),
+    ("ACT", "Acts", 28), ("ROM", "Romans", 16), ("1CO", "1 Corinthians", 16), ("2CO", "2 Corinthians", 13),
+    ("GAL", "Galatians", 6), ("EPH", "Ephesians", 6), ("PHP", "Philippians", 4), ("COL", "Colossians", 4),
+    ("1TH", "1 Thessalonians", 5), ("2TH", "2 Thessalonians", 3), ("1TI", "1 Timothy", 6), ("2TI", "2 Timothy", 4),
+    ("TIT", "Titus", 3), ("PHM", "Philemon", 1), ("HEB", "Hebrews", 13), ("JAS", "James", 5),
+    ("1PE", "1 Peter", 5), ("2PE", "2 Peter", 3), ("1JN", "1 John", 5), ("2JN", "2 John", 1),
+    ("3JN", "3 John", 1), ("JUD", "Jude", 1), ("REV", "Revelation", 22)
 ]
 
-BASE_URL = "https://live.bible.is/bible/ELLAPE/{book}/{chapter}"
-SAVE_ROOT = "output"
+BASE_URL = "https://www.die-bibel.de/en/bible/LXX/{book}.{chapter}"
+SAVE_ROOT = "output_lxx"
 
-
-def setup_driver():
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    driver = webdriver.Chrome(options=options)
-    return driver
-
-
-def fetch_chapter_html_selenium(driver, book_code, chapter_num):
+def fetch_chapter_html(book_code, chapter_num):
     url = BASE_URL.format(book=book_code, chapter=chapter_num)
     try:
-        driver.get(url)
-        time.sleep(2)  # allow time for JS to render
-        return driver.page_source
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.text
+        else:
+            print(f"  ❌ HTTP {response.status_code} for {url}")
     except Exception as e:
-        print(f"  ❌ Error fetching {book_code} {chapter_num}: {e}")
-        return None
-
+        print(f"  ❌ Error fetching {url}: {e}")
+    return None
 
 def extract_chapter_content(html):
     soup = BeautifulSoup(html, "html.parser")
-    chapter_div = soup.select_one("div.chapter.section")
-    if not chapter_div:
-        return None
-
-    paragraphs = []
-    for p in chapter_div.find_all("p"):
-        spans = []
-        for span in p.find_all("span"):
-            classes = span.get("class", [])
-            if any("v-num" in cls for cls in classes):
-                spans.append(f"<b>{span.get_text(strip=True)}</b>")
-            elif any(cls.startswith("v") or cls.startswith("GEN") for cls in classes):
-                spans.append(span.get_text(strip=True))
-        if spans:
-            paragraphs.append("<p>" + " ".join(spans) + "</p>")
-
-    return paragraphs if paragraphs else None
-
+    content = []
+    for bp in soup.find_all("bible-p"):
+        p = bp.find("p")
+        if p:
+            paragraph_parts = []
+            for elem in p.children:
+                if isinstance(elem, Tag) and elem.name == "bible-v":
+                    verse_number = ""
+                    sub = elem.find("sub")
+                    if sub:
+                        verse_number = sub.get_text(strip=True)
+                    else:
+                        verse_number = elem.get_text(strip=True)
+                    paragraph_parts.append(f" <b>{verse_number}</b> ")
+                elif isinstance(elem, NavigableString):
+                    paragraph_parts.append(str(elem))
+                else:
+                    paragraph_parts.append(elem.get_text())
+            content.append(f"<p>{''.join(paragraph_parts).strip()}</p>")
+    return content if content else None
 
 def save_chapter(book_name, chapter_num, paragraphs):
     folder = os.path.join(SAVE_ROOT, book_name)
@@ -80,35 +72,27 @@ def save_chapter(book_name, chapter_num, paragraphs):
         f.write(f"<h2>{book_name} {chapter_num}</h2>\n")
         f.write("\n".join(paragraphs))
 
-
 def already_downloaded(book_name, chapter_num):
     return os.path.exists(os.path.join(SAVE_ROOT, book_name, f"chapter_{chapter_num}.html"))
 
-
 def main():
-    driver = setup_driver()
-    try:
-        for book_code, book_name, total_chapters in BOOKS:
-            for chapter in range(1, total_chapters + 1):
-                if already_downloaded(book_name, chapter):
-                    print(f"⏩ Skipping {book_name} {chapter} (already downloaded)")
-                    continue
+    for book_code, book_name, total_chapters in BOOKS:
+        for chapter in range(1, total_chapters + 1):
+            if already_downloaded(book_name, chapter):
+                print(f"⏩ Skipping {book_name} {chapter} (already downloaded)")
+                continue
 
-                print(f"Fetching: {book_code} {chapter} → {BASE_URL.format(book=book_code, chapter=chapter)}")
-                html = fetch_chapter_html_selenium(driver, book_code, chapter)
-                if not html:
-                    continue
+            print(f"Fetching: {book_code} {chapter} → {BASE_URL.format(book=book_code, chapter=chapter)}")
+            html = fetch_chapter_html(book_code, chapter)
+            if not html:
+                continue
 
-                content = extract_chapter_content(html)
-                if content:
-                    save_chapter(book_name, chapter, content)
-                    print(f"  ✅ Saved {book_name} {chapter}")
-                else:
-                    print(f"  ⚠️ No content found for {book_name} {chapter}")
-
-    finally:
-        driver.quit()
-
+            content = extract_chapter_content(html)
+            if content:
+                save_chapter(book_name, chapter, content)
+                print(f"  ✅ Saved {book_name} {chapter}")
+            else:
+                print(f"  ⚠️ No content found for {book_name} {chapter}")
 
 if __name__ == "__main__":
     main()
