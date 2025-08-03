@@ -16,7 +16,7 @@ BOOKS = [
     ("WIS", "Wisdom", 19), ("SIR", "Sirach", 51), ("PSS", "Psalms of Solomon", 18), ("HOS", "Hosea", 14),
     ("AMO", "Amos", 9), ("MIC", "Micah", 7), ("JOL", "Joel", 3), ("OBA", "Obadiah", 1), ("JON", "Jonah", 4), ("NAM", "Nahum", 3),
     ("HAB", "Habakkuk", 3), ("ZEP", "Zephaniah", 3), ("HAG", "Haggai", 2), ("ZEC", "Zechariah", 14), ("MAL", "Malachi", 4),
-    ("ISA", "Isaiah", 66), ("JER", "Jeremiah", 52), ("BAR", "Baruch", 6), ("LAM", "Lamentations", 5), ("LJE", "Epistle of Jeremiah", 1)
+    ("ISA", "Isaiah", 66), ("JER", "Jeremiah", 52), ("BAR", "Baruch", 6), ("LAM", "Lamentations", 5), ("LJE", "Epistle of Jeremiah", 1),
     ("EZK", "Ezekiel", 48), ("SUS", "Susanna", 1), ("DAN", "Daniel", 14), ("BEL", "Bel and the Dragon", 1), ("ODA", "Odes", 14)
     
     # New Testament
@@ -65,7 +65,6 @@ def save_chapter(book_name, chapter_num, paragraphs):
     os.makedirs(folder, exist_ok=True)
     filepath = os.path.join(folder, f"chapter_{chapter_num}.html")
     with open(filepath, "w", encoding="utf-8") as f:
-        f.write(f"<h2>{book_name} {chapter_num}</h2>\n")
         f.write("\n".join(paragraphs))
 
 
