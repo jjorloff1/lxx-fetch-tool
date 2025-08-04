@@ -11,6 +11,8 @@ all_elements = list(body.children)
 
 new_body = []
 i = 0
+found_first_p_of_book = False
+
 while i < len(all_elements):
     el = all_elements[i]
 
@@ -23,6 +25,7 @@ while i < len(all_elements):
     # Directly append <h1> or <h2>
     if el.name in ["h1", "h2"]:
         new_body.append(el)
+        found_first_p_of_book = False
         i += 1
         continue
 
@@ -40,8 +43,9 @@ while i < len(all_elements):
             if getattr(next_el, 'name', None) in ["h2", "h3", "h1"]:
                 break
             if getattr(next_el, 'name', None) == "p":
-                if paragraph_index == 0:
+                if paragraph_index == 0 and found_first_p_of_book == False:
                     next_el['class'] = next_el.get('class', []) + ['dropcap']
+                    found_first_p_of_book = True
                 chapter_content.append(next_el)
                 paragraph_index += 1
             else:

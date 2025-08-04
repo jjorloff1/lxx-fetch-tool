@@ -8,3 +8,4 @@
     [] Can I style this like my ESV Reader (small chapters in margin, no verse numbers)
 [] Header and Footer references
 [] Table of Contents
+[] Replace English titles with Greek titles.

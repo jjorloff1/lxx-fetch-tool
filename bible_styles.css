@@ -1,0 +1,109 @@
+
+body {
+  font-family: "Sentinel", "Gentium Plus", "Ezra", Georgia, Times, serif;
+  margin: 1.5in;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+h1 {
+  font-size: 2.5em;
+  text-align: center;
+  color: #9B3A3F;
+  text-transform: uppercase;
+  page-break-before: always;
+}
+
+h2 {
+  font-size: 2em;
+  text-align: center; /* Center book titles */
+  color: #9B3A3F;
+  text-transform: uppercase;
+  margin-top: 3em;
+  margin-bottom: 0.5em;
+  page-break-before: always;
+}
+
+h3 {
+  font-size: 1.5em;
+  margin-left: -1.5em; /* Offset chapter number into the margin */
+  margin-bottom: 0;
+  margin-top: 2em;
+  color: #9B3A3F;
+  float: left;
+  clear: both;
+  line-height: 1;
+}
+
+/* Align chapter number with the top line of text */
+.chapter-block {
+  display: flex;
+  align-items: flex-start;
+}
+
+.chapter-block h3 {
+  margin-right: 1em;
+  margin-top: 0.1em;
+}
+
+.chapter-content {
+  flex: 1;
+}
+
+p {
+  text-indent: 2em;
+  margin-top: 0;
+  margin-bottom: 1em;
+  widows: 2;
+  orphans: 2;
+}
+
+/* Superscript verse numbers */
+b {
+  font-size: 0.65em;
+  vertical-align: super;
+  font-weight: normal;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+  color: #6A6A6A;
+}
+
+/* Remove red drop caps globally */
+p::first-letter {
+  font-size: 1em;
+  color: inherit;
+  float: none;
+  font-weight: normal;
+}
+
+/* Hide the first verse number in dropcap paragraphs */
+.dropcap {
+  text-indent: 0;
+}
+
+.dropcap > b:first-of-type {
+  display: none;
+}
+
+/* Drop cap styling */
+.dropcap::first-letter {
+  color: #963b3c; /* Crossway Red */
+  float: left;
+  font-size: 3em;
+  line-height: 1;  /* Shrinks vertical space used by the large letter */
+  margin-right: 0.05em;
+  padding-top: 0.05em; /* Nudge it down a touch */
+  font-weight: bold;
+}
+
+/* Print-specific adjustments */
+@media print {
+  body {
+    margin: 1.25in 1in 1.5in 1.5in;
+  }
+
+  @page {
+    size: 6in 9in;
+    margin: 1in;
+  }
+}
