@@ -2,13 +2,15 @@ import os
 
 # Book metadata: (code, name, number of chapters)
 BOOKS = [
+    # Old Testament and Deuterocanon
     ("GEN", "Genesis", 50), ("EXO", "Exodus", 40), ("LEV", "Leviticus", 27), ("NUM", "Numbers", 36), ("DEU", "Deuteronomy", 34),
     ("JOS", "Joshua", 24), ("JDG", "Judges", 21), ("RUT", "Ruth", 4), ("1SA", "1 Samuel", 31), ("2SA", "2 Samuel", 24),
-    ("1KI", "1 Kings", 22), ("2KI", "2 Kings", 25), ("1CH", "1 Chronicles", 29), ("2CH", "2 Chronicles", 36),
+    ("1KI", "1 Kings", 22), ("2KI", "2 Kings", 25), ("1CH", "1 Chronicles", 29), ("2CH", "2 Chronicles", 36), 
     ("1ES", "1 Esdras", 9), ("EZR", "Ezra - Nehemiah", 23), ("EST", "Esther", 16), ("ESA", "Esther With Additons", 10),
     ("JDT", "Judith", 16), ("TOB", "Tobit", 14), ("1MA", "1 Maccabees", 16), ("2MA", "2 Maccabees", 15), ("3MA", "3 Maccabees", 7), 
-    ("4MA", "4 Maccabees", 18), ("PSA", "Psalms", 151), ("PRO", "Proverbs", 31), ("ECC", "Ecclesiastes", 12), ("SNG", "Song of Solomon", 8), 
-    ("JOB", "Job", 42), ("WIS", "Wisdom", 19), ("SIR", "Sirach", 51), ("PSS", "Psalms of Solomon", 18), ("HOS", "Hosea", 14),
+    ("4MA", "4 Maccabees", 18), 
+    ("PSA", "Psalms", 151), ("PRO", "Proverbs", 31), ("ECC", "Ecclesiastes", 12), ("SNG", "Song of Solomon", 8), ("JOB", "Job", 42), 
+    ("WIS", "Wisdom", 19), ("SIR", "Sirach", 51), ("PSS", "Psalms of Solomon", 18), ("HOS", "Hosea", 14),
     ("AMO", "Amos", 9), ("MIC", "Micah", 7), ("JOL", "Joel", 3), ("OBA", "Obadiah", 1), ("JON", "Jonah", 4), ("NAM", "Nahum", 3),
     ("HAB", "Habakkuk", 3), ("ZEP", "Zephaniah", 3), ("HAG", "Haggai", 2), ("ZEC", "Zechariah", 14), ("MAL", "Malachi", 4),
     ("ISA", "Isaiah", 66), ("JER", "Jeremiah", 52), ("BAR", "Baruch", 6), ("LAM", "Lamentations", 5), ("LJE", "Epistle of Jeremiah", 1),
@@ -16,7 +18,7 @@ BOOKS = [
 ]
 
 OUTPUT_DIR = "output_lxx"
-OUTPUT_FILE = "compiled_septuagint.html"
+OUTPUT_FILE = "output_lxx/compiled_septuagint.html"
 
 def merge_chapters():
     merged = ["<h1>Septuagint</h1>"]
@@ -40,6 +42,9 @@ def merge_chapters():
 
             merged.append(f"<h3>{chapter_num}</h3>")
             merged.append(chapter_content.strip())
+
+    # Make sure the output folder exists
+    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("\n".join(merged))
