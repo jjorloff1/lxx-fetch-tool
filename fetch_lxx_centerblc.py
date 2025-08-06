@@ -1,8 +1,9 @@
 from tf.fabric import Fabric
 from pathlib import Path
+import os
 
 TF_PATH = "/Users/jesse.orloff/Library/Mobile Documents/com~apple~CloudDocs/Documents/Code/bible-tools/LXX/tf/1935"
-output_path = "septuagint_from_tf.html"
+output_path = "output_lxx_1935/septuagint_from_tf.html"
 
 features = [
     "book", "chapter", "verse",
@@ -117,13 +118,14 @@ for word_node in F.otype.s("word"):
         if current_verse == "":
             html.append(f"<p>")
         current_verse = verse
-        html.append(f" <b>{verse}</b> ")
+        html.append(f" <b>{verse}</b>")
 
     # Add the word
     word_text = F.word.v(word_node) or ""
     html.append(word_text + " ")
 
 # Output the result
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, "w", encoding="utf-8") as f:
     f.write("".join(html))
 
