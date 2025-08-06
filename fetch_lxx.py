@@ -34,7 +34,7 @@ BASE_URL = "https://www.die-bibel.de/en/bible/LXX/{book}.{chapter}"
 SAVE_ROOT = "output_lxx"
 
 def bold_unwrapped_numbers(text):
-    pattern = re.compile(r'\s?(\d+[a-z]*?)\s?')
+    pattern = re.compile(r'\s?(\d+[a-z]?)\s?')
 
     if isinstance(text, list):
         return [pattern.sub(r' <b>\1</b>', item) for item in text]
@@ -55,18 +55,16 @@ def fetch_chapter_html(book_code, chapter_num):
         print(f"  ❌ Error fetching {url}: {e}")
     return None
 
+def extract_text_cleaned(html):
+    """Strips all HTML tags and whitespace from a given HTML string"""
+    soup = BeautifulSoup(html, "html.parser")
+    return ''.join(soup.stripped_strings)
 
 def extract_chapter_content(html):
     soup = BeautifulSoup(html, "html.parser")
     content = []
-    for bp in soup.find_all(["bible-p", "bible-q", "bible-m"]):
-        p = bp.find("p")
-        if p:
-            content.append(f"<p>{p.get_text(strip=True)}</p>")
-    if not content:
-        # fallback if no bible-p or bible-q: look for direct <p> in container
-        for p in soup.find_all("ibep-bible-passage"):
-            content.append(f"<p>{p.get_text(strip=True)}</p>")
+    for bp in soup.find_all(["ibep-bible-passage"]): # ["bible-p", "bible-q", "bible-m", "bible-d", "ibep-bible-passage"]):
+        content.append(f"<p>{bp.get_text(strip=True)}</p>")
     return content if content else None
 
 #     consider checking size against ibep-render-bible-content to see if they match
@@ -95,6 +93,18 @@ def main():
             html = fetch_chapter_html(book_code, chapter)
             if not html:
                 continue
+
+            content = extract_chapter_content(html)
+
+            # After fetching and parsing the page
+
+            soup = BeautifulSoup(html, "html.parser")
+            original_div = soup.find("ibep-render-bible-content")
+            original_clean = extract_text_cleaned(str(original_div))
+            built_clean = extract_text_cleaned(''.join(content))
+
+            if original_clean != built_clean:
+                print(f"⚠️ WARNING: Content mismatch in {book_name} {chapter}")
 
             content = extract_chapter_content(html)
             verse_b_content = bold_unwrapped_numbers(content)
