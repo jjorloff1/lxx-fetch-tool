@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+import re
 from bs4 import BeautifulSoup
 
 # Book metadata: (code, name, number of chapters)
@@ -32,6 +33,15 @@ BOOKS = [
 BASE_URL = "https://www.die-bibel.de/en/bible/LXX/{book}.{chapter}"
 SAVE_ROOT = "output_lxx"
 
+def bold_unwrapped_numbers(text):
+    pattern = re.compile(r'\s?(\d+[a-z]*?)\s?')
+
+    if isinstance(text, list):
+        return [pattern.sub(r' <b>\1</b>', item) for item in text]
+    elif isinstance(text, str):
+        return pattern.sub(r' <b>\1</b>', text)
+    else:
+        raise TypeError("Expected a string or list of strings")
 
 def fetch_chapter_html(book_code, chapter_num):
     url = BASE_URL.format(book=book_code, chapter=chapter_num)
@@ -49,7 +59,7 @@ def fetch_chapter_html(book_code, chapter_num):
 def extract_chapter_content(html):
     soup = BeautifulSoup(html, "html.parser")
     content = []
-    for bp in soup.find_all(["bible-p", "bible-q"]):
+    for bp in soup.find_all(["bible-p", "bible-q", "bible-m"]):
         p = bp.find("p")
         if p:
             content.append(f"<p>{p.get_text(strip=True)}</p>")
@@ -58,6 +68,8 @@ def extract_chapter_content(html):
         for p in soup.find_all("ibep-bible-passage"):
             content.append(f"<p>{p.get_text(strip=True)}</p>")
     return content if content else None
+
+#     consider checking size against ibep-render-bible-content to see if they match
 
 
 def save_chapter(book_name, chapter_num, paragraphs):
@@ -85,8 +97,9 @@ def main():
                 continue
 
             content = extract_chapter_content(html)
-            if content:
-                save_chapter(book_name, chapter, content)
+            verse_b_content = bold_unwrapped_numbers(content)
+            if verse_b_content:
+                save_chapter(book_name, chapter, verse_b_content)
                 print(f"  ✅ Saved {book_name} {chapter}")
             else:
                 print(f"  ⚠️ No content found for {book_name} {chapter}")
