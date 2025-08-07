@@ -1,9 +1,14 @@
 import json
 import os
+import re
 from bs4 import BeautifulSoup
 
 INPUT_FILE = "output_lxx/compiled_septuagint.html"
 OUTPUT_FILE = "output_lxx/paragraph_markers.json"
+
+def clean_greek_word(word):
+    # Keep only Greek letters and combining marks (Unicode range)
+    return ''.join(re.findall(r'[\u0370-\u03FF\u1F00-\u1FFF]+', word))
 
 def extract_paragraph_markers():
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
@@ -56,8 +61,8 @@ def extract_paragraph_markers():
                     "chapter": current_chapter,
                     "verse": str(verse_number_string), # Verse numbers sometimes have letters
                     "word_index": str(index_from_last_verse),
-                    "prev_word": last_word_in_previous_paragraph,
-                    "next_word": words[0] if words else None
+                    "prev_word": clean_greek_word(last_word_in_previous_paragraph) if last_word_in_previous_paragraph else None,
+                    "next_word": clean_greek_word(words[0]) if words else None
                 }
                 markers.append(marker)
 
@@ -78,10 +83,8 @@ def extract_last_verse_word_count(tag):
     raw = str(tag)
     parts = raw.split("</b>")
     last_verse_raw = parts[-1].strip()
-    print(last_verse_raw)
     last_verse_text = BeautifulSoup(last_verse_raw, "html.parser").get_text(strip=True)
     word_count = len(last_verse_text.split())
-    print(last_verse_text)
     return word_count
 
 if __name__ == "__main__":
