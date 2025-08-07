@@ -4,6 +4,7 @@
 [] Add NT In with similar details
     [x] SRGNT
     [] SBLGNT
+    [] [OpenGNT](https://github.com/eliranwong/OpenGNT/tree/master)
 [] Style for printing
     [] superscript verses? Hide Verses alltogether for a reader edition? <-- This may be ideal
     [] Get good font style
@@ -15,6 +16,17 @@
 [] use pagedjs https://pagedjs.org/en/documentation/2-getting-started-with-paged.js/
 [] Variants to consider based on version
     [] Ending of Mark (probably include SBLGNT endings)
+    [] Woman in adultry John 8:3-11
+    [] LXX Include masoretic numbering with Psalms
+[] Bugs
+    [] See end of gen 1, does it have a period?  Do we need to generate periods?  Apparently there are no punctuation marks at all.
+        We need a new source for punctuation.
+    [x] Match Titles between paragraph markers and LXX file:
+        markers_by_book_chapter.get((current_book, current_chapter), [])
+        []
+        current_book
+        'Γένεσις (Genesis)'
+    [] index on multi paragraph verses is not matching in the insertion script.
 `pagedjs-cli index.html -o result.pdf`
 [] Rahlf 1935
     [] Get Paragraphing
