@@ -12,8 +12,10 @@ def extract_paragraph_markers():
     markers = []
     current_book = None
     current_chapter = None
-    last_verse_in_current_paragraph = None
+    last_verse_seen = None
     last_word_in_previous_paragraph = None
+    index_from_last_verse = 0
+    previous_paragraph_tag = None
     first_paragraph_seen = False
     
 
@@ -31,9 +33,12 @@ def extract_paragraph_markers():
 
             if verse_tag:
                 verse_number = verse_tag.get_text(strip=True)
-                last_verse_in_current_paragraph = last_b_tag.get_text(strip=True) if last_b_tag else None
+                last_verse_seen = last_b_tag.get_text(strip=True) if last_b_tag else None
+                index_from_last_verse = 0
             else:
-                verse_number = last_verse_in_current_paragraph
+                verse_number = last_verse_seen
+                last_verse_word_count = extract_last_verse_word_count(previous_paragraph_tag)
+                index_from_last_verse = index_from_last_verse + last_verse_word_count
 
             words = []
             for content in tag.stripped_strings:
@@ -45,13 +50,14 @@ def extract_paragraph_markers():
                     "book": current_book,
                     "chapter": current_chapter,
                     "verse": verse_number,
-                    "word_index": 0,
+                    "word_index": index_from_last_verse,
                     "prev_word": last_word_in_previous_paragraph,
                     "next_word": words[0] if words else None
                 }
                 markers.append(marker)
 
             last_word_in_previous_paragraph = words[-1]
+            previous_paragraph_tag = tag
             first_paragraph_seen = True
 
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
@@ -59,6 +65,19 @@ def extract_paragraph_markers():
         json.dump(markers, out, ensure_ascii=False, indent=2)
 
     print(f"✔ Paragraph marker data written to {OUTPUT_FILE}")
+
+def extract_last_verse_word_count(tag):
+    if not tag:
+        return 0
+    
+    raw = str(tag)
+    parts = raw.split("</b>")
+    last_verse_raw = parts[-1].strip()
+    print(last_verse_raw)
+    last_verse_text = BeautifulSoup(last_verse_raw, "html.parser").get_text(strip=True)
+    word_count = len(last_verse_text.split())
+    print(last_verse_text)
+    return word_count
 
 if __name__ == "__main__":
     extract_paragraph_markers()
