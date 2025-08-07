@@ -102,7 +102,7 @@ for word_node in F.otype.s("word"):
             html.append(f"</p>\n")
         current_chapter = ""
         english_name, greek_name = book_name_mapping.get(book, [book, book])
-        book_title = f"{greek_name} ({english_name})"
+        book_title = f"{english_name}"
         html.append(f"<h2>{book_title}</h2>\n")
 
     # Detect new chapter
