@@ -12,7 +12,7 @@ def extract_paragraph_markers():
     markers = []
     current_book = None
     current_chapter = None
-    last_verse_seen = None
+    last_verse_seen = 0
     last_word_in_previous_paragraph = None
     index_from_last_verse = 0
     previous_paragraph_tag = None
@@ -24,7 +24,12 @@ def extract_paragraph_markers():
             current_book = tag.get_text(strip=True)
         elif tag.name == "h3":
             current_chapter = tag.get_text(strip=True)
+
+            # Reset counters at beginning of a new chapter
             first_paragraph_seen = False
+            previous_paragraph_tag = None
+            index_from_last_verse = 0
+            last_verse_seen = 0
         elif tag.name == "p":
             # Find the verse number from first <b> tag in this paragraph
             verse_tag = tag.find("b")
@@ -32,11 +37,11 @@ def extract_paragraph_markers():
             last_b_tag = verse_tags[-1] if verse_tags else None
 
             if verse_tag:
-                verse_number = verse_tag.get_text(strip=True)
+                verse_number_string = verse_tag.get_text(strip=True)
                 last_verse_seen = last_b_tag.get_text(strip=True) if last_b_tag else None
                 index_from_last_verse = 0
             else:
-                verse_number = last_verse_seen
+                verse_number_string = str(last_verse_seen)
                 last_verse_word_count = extract_last_verse_word_count(previous_paragraph_tag)
                 index_from_last_verse = index_from_last_verse + last_verse_word_count
 
@@ -49,8 +54,8 @@ def extract_paragraph_markers():
                 marker = {
                     "book": current_book,
                     "chapter": current_chapter,
-                    "verse": verse_number,
-                    "word_index": index_from_last_verse,
+                    "verse": str(verse_number_string), # Verse numbers sometimes have letters
+                    "word_index": str(index_from_last_verse),
                     "prev_word": last_word_in_previous_paragraph,
                     "next_word": words[0] if words else None
                 }
